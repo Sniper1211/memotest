@@ -36,14 +36,15 @@ class SoundEffect {
 
     async playTileSound(index) {
         const frequencies = [
-            this.baseFrequency,
-            this.baseFrequency * 9/8,
-            this.baseFrequency * 5/4,
-            this.baseFrequency * 4/3,
-            this.baseFrequency * 3/2,
-            this.baseFrequency * 5/3,
-            this.baseFrequency * 15/8,
-            this.baseFrequency * 2
+            this.baseFrequency,        // 440 Hz    (A4)
+            this.baseFrequency * 9/8,  // 495 Hz    (B4)
+            this.baseFrequency * 5/4,  // 550 Hz    (C#5)
+            this.baseFrequency * 4/3,  // 586.67 Hz (D5)
+            this.baseFrequency * 3/2,  // 660 Hz    (E5)
+            this.baseFrequency * 5/3,  // 733.33 Hz (F#5)
+            this.baseFrequency * 15/8, // 825 Hz    (G#5)
+            this.baseFrequency * 2,    // 880 Hz    (A5)
+            this.baseFrequency * 18/8  // 990 Hz    (B5)
         ];
         await this.playTone(frequencies[index % frequencies.length], 0.15);
     }
