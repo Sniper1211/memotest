@@ -61,6 +61,9 @@ class MemoryGame {
         this.score = 0;
         this.bestScore = parseInt(localStorage.getItem('bestScore')) || 0;
         this.level = 1;
+        this.baseSequenceLength = 3;    // 初始序列长度改为3
+        this.maxSequenceLength = 8;     // 最大序列长度改为8
+        this.levelsPerIncrease = 2;     // 每2关增加一个方块
         
         // DOM 元素
         this.gameGrid = document.getElementById('gameGrid');
@@ -139,16 +142,31 @@ class MemoryGame {
         
         this.setStatus('Watch the sequence...');
         
-        // 根据当前等级生成序列
-        const sequenceLength = Math.min(3 + this.level - 1, 9);
+        // 计算当前关卡的序列长度
+        const sequenceLength = this.calculateSequenceLength();
+        
+        // 生成序列
         for (let i = 0; i < sequenceLength; i++) {
             this.sequence.push(Math.floor(Math.random() * (this.gridSize * this.gridSize)));
         }
         
-        // 播放序列
         await this.playSequence();
-        this.setStatus('Your turn! Repeat the sequence.');
+        this.setStatus(`Your turn! Repeat ${sequenceLength} blocks`);
         this.startButton.disabled = false;
+    }
+    
+    calculateSequenceLength() {
+        // 修改难度计算公式
+        const additionalBlocks = Math.floor((this.level - 1) / this.levelsPerIncrease);
+        const baseIncrease = Math.min(this.baseSequenceLength + additionalBlocks, this.maxSequenceLength);
+        
+        // 在基础增长之上添加额外的难度调整
+        if (this.level >= 15) {  // 15关之后增加额外难度
+            const extraDifficulty = Math.floor((this.level - 15) / 5); // 每5关额外增加一个方块
+            return Math.min(baseIncrease + extraDifficulty, 9); // 最终上限是9个方块
+        }
+        
+        return baseIncrease;
     }
     
     async playSequence() {
@@ -184,7 +202,9 @@ class MemoryGame {
             
             if (this.playerSequence.length === this.sequence.length) {
                 // 完成当前序列
-                this.score += this.sequence.length * 10;
+                const currentLength = this.sequence.length;
+                // 根据序列长度计算得分
+                this.score += currentLength * 15;
                 if (this.score > this.bestScore) {
                     this.bestScore = this.score;
                     localStorage.setItem('bestScore', this.bestScore);
@@ -195,8 +215,16 @@ class MemoryGame {
                 this.isPlaying = false;
                 setTimeout(() => {
                     this.sound.playSuccess();
-                    this.setStatus('Great job! Starting next level...');
-                    setTimeout(() => this.startGame(), 1000);
+                    // 计算下一关的序列长度
+                    const nextLength = this.calculateSequenceLength();
+                    const levelInfo = `Level ${this.level} - ${nextLength} blocks`;
+                    // 如果序列长度增加，特别提醒玩家
+                    if (nextLength > currentLength) {
+                        this.setStatus(`Level up! ${levelInfo}`);
+                    } else {
+                        this.setStatus(`Great job! ${levelInfo}`);
+                    }
+                    setTimeout(() => this.startGame(), 1500);
                 }, 500);
             }
         } else {
